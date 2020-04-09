@@ -39,8 +39,8 @@ def get_pet_labels(image_dir):
     """
     results_dic = {}
     for entry in listdir(image_dir):
-        pet_label = ' '.join([l.strip() for l in entry.lower().split('_') if l.isalpha()])
-        results_dic[entry] = [pet_label]
-    # Replace None with the results_dic dictionary that you created with this
-    # function
+        if not entry.startswith('.'):
+            pet_label = ' '.join([l.strip() for l in entry.lower().split('_') if l.isalpha()])
+            results_dic[entry] = [pet_label]
+
     return results_dic

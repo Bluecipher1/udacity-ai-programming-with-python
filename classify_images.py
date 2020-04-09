@@ -65,4 +65,3 @@ def classify_images(images_dir, results_dic, model):
         classifier_labels = classifier(image_file, model)
         value.append(classifier_labels.strip().lower())
         value.append(int(value[0] in value[1]))
-    None
