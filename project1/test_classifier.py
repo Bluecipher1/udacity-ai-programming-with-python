@@ -15,7 +15,7 @@
 # Usage: python test_classifier.py    -- will run program from commandline
 
 # Imports classifier function for using pretrained CNN to classify images 
-from classifier import classifier 
+from project1.classifier import classifier
 
 # Defines a dog test image from pet_images folder
 test_image="pet_images/Collie_03797.jpg"
