@@ -31,7 +31,10 @@ class Network():
             pass
 
         # get input size of classifier
-        input_size = next(iter(module.children())).in_features
+        if type(module) == nn.Sequential:
+            input_size = next(iter(module.children())).in_features
+        else:
+            input_size = module.in_features
 
         layer_sizes = zip(hidden_units[:-1], hidden_units[1:])
         
@@ -60,8 +63,18 @@ class Network():
         setattr(self.model, name, classifier)
 
         self.criterion = nn.NLLLoss()
-        self.optimizer = optim.Adam(self.model.classifier.parameters(), lr=learning_rate)
-        self.device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
+        self.optimizer = optim.Adam(getattr(self.model, name).parameters(), lr=learning_rate)
+
+        # if GPU requested check if present
+        use_gpu = gpu
+        if gpu:
+            if torch.cuda.is_available():
+                print("GPU Device available, using GPU.")
+            else:
+                warnings.warn('No GPU found. Using CPU.')
+                use_gpu = false
+            
+        self.device = torch.device("cuda" if use_gpu else "cpu")
 
         self.arch = arch
         self.hidden_units = hidden_units
@@ -70,8 +83,6 @@ class Network():
         self.drop_p = drop_p
         self.learning_rate = learning_rate
         self.gpu = gpu
-
-        self.model.to(self.device)
 
     def train(self, trainloader, validationloader, class_to_idx, epochs=5):
         """ Trains the neural network using the images provided by the trainloader
@@ -89,7 +100,9 @@ class Network():
 
         self.class_to_idx = class_to_idx
         total_epochs = self.epochs + epochs
-        
+                
+        self.model.to(self.device)
+
         for epoch in range(self.epochs, total_epochs):
     
             for images, labels in trainloader:
@@ -129,6 +142,7 @@ class Network():
                     self.model.train()
                     
         self.epochs += epochs
+        self.model.cpu()
         
     def predict(self, data, topk=5):
         """ Predicts probabilities and classes for specified data.
@@ -140,6 +154,7 @@ class Network():
         Returns:
             (probs, classes) - tuple with two lists
         """
+        self.model.to(self.device)
         self.model.eval()
         images = data.to(self.device)
         
@@ -148,10 +163,10 @@ class Network():
             ps = torch.exp(log_ps)
             top_p, top_class = ps.topk(topk, dim=1)
         self.model.train()
-        
+        self.model.cpu()
         return top_p, top_class
 
-    def save(self, filepath):
+    def create_checkpoint(self, filepath):
         """ Saves the current state of the network to a checkpoint file.
         
         Parameters:
@@ -173,7 +188,7 @@ class Network():
         torch.save(checkpoint, filepath)
         
     @staticmethod
-    def load(filepath):
+    def load_model(filepath):
         """ Loads a model from the specified checkpoint file
         
         Parameters:
