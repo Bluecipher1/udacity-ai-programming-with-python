@@ -6,7 +6,7 @@ from my_module import Network
 parser = argparse.ArgumentParser()
 parser.add_argument("data_dir")
 parser.add_argument("--arch", dest="arch", default='vgg13')
-parser.add_argument("--save_dir", dest="checkpoint", default="checkpoint.pth")
+parser.add_argument("--save_dir", dest="save_dir", default="")
 parser.add_argument("--learning_rate", dest="learning_rate", type=float, default=0.002)
 parser.add_argument("--hidden_units", dest="hidden_units", default=[8192, 1024])
 parser.add_argument("--dropout", dest="drop_p", type=float, default=0.5)
@@ -40,7 +40,7 @@ validationloader = torch.utils.data.DataLoader(validation_data, batch_size=64)
 network = Network(arch=args.arch, hidden_units=args.hidden_units, output_size=102, learning_rate=args.learning_rate,
                  drop_p=args.drop_p, gpu=args.gpu)
 
-network.train(trainloader, validationloader, train_data.class_to_idx, train_data.class_to_idx, args.epochs)
+network.train(trainloader, validationloader, train_data.class_to_idx, args.epochs)
 
-network.save(args.checkpoint)
+network.create_checkpoint('checkpoint.pth')
 
